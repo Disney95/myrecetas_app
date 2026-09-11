@@ -104,10 +104,10 @@ class AlmacenScreen extends StatelessWidget {
                           // calcular dónde debe aparecer el menú. Así evitamos
                           // que el menú quede mal ubicado al cerrarse el
                           // teclado de golpe.
-                          final teníaFoco = FocusScope.of(ctx).hasFocus &&
+                          final teniaFoco = FocusScope.of(ctx).hasFocus &&
                               FocusScope.of(ctx).focusedChild != null;
                           FocusScope.of(ctx).unfocus();
-                          if (teníaFoco) {
+                          if (teniaFoco) {
                             await Future.delayed(const Duration(milliseconds: 200));
                           }
                           if (!ctx.mounted) return;
