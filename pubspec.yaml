@@ -1,7 +1,7 @@
 name: recetas_app
 description: "Aplicación para gestión de recetas culinarias y cálculo de costos"
 publish_to: 'none'
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -19,6 +19,7 @@ dependencies:
   intl: ^0.19.0
   uuid: ^4.3.3
   shared_preferences: ^2.2.2
+  package_info_plus: ^8.0.0
 
 dev_dependencies:
   flutter_test:
