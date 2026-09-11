@@ -51,7 +51,7 @@ class _InicioScreenState extends State<InicioScreen> {
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    height: 110,
+                    height: 150,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/receta.dart';
@@ -7,7 +8,6 @@ import '../models/ingrediente.dart';
 import '../providers/recetas_provider.dart';
 import '../providers/almacen_provider.dart';
 import '../providers/categorias_provider.dart';
-import '../providers/moneda_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/unidades.dart';
 
@@ -72,9 +72,17 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
   }
 
   void _usarUrlImagen() {
-    if (_urlImagenCtrl.text.trim().isEmpty) return;
+    final url = _urlImagenCtrl.text.trim();
+    if (url.isEmpty) return;
+    final valida = Uri.tryParse(url)?.hasAbsolutePath == true &&
+        (url.startsWith('http://') || url.startsWith('https://'));
+    if (!valida) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Esa URL no es válida. Debe empezar con http:// o https://')));
+      return;
+    }
     setState(() {
-      _imagenPath = _urlImagenCtrl.text.trim();
+      _imagenPath = url;
       _urlImagenCtrl.clear();
     });
   }
@@ -95,9 +103,19 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
     final precioCtrl = TextEditingController();
     final cantCompraCtrl = TextEditingController(text: '1');
     final almacenProvider = context.read<AlmacenProvider>();
-    final monedaProvider = context.read<MonedaProvider>();
-    Moneda monedaPrecio = monedaProvider.monedaPreferida;
     bool autoDelAlmacen = false;
+    double? costoCalculadoPreview;
+
+    void recalcularPreview(StateSetter setModalState) {
+      final cantidad = double.tryParse(cantCtrl.text) ?? 0;
+      final precio = double.tryParse(precioCtrl.text) ?? 0;
+      final cantCompra = double.tryParse(cantCompraCtrl.text) ?? 1;
+      setModalState(() {
+        costoCalculadoPreview = (cantidad > 0 && precio > 0 && cantCompra > 0)
+            ? (precio / cantCompra) * cantidad
+            : null;
+      });
+    }
 
     void intentarAutocompletar(StateSetter setModalState) {
       final nombre = nombreCtrl.text.trim();
@@ -105,14 +123,13 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
       final insumo = almacenProvider.buscarPorNombre(nombre, unidad);
       if (insumo != null) {
         final precioUnitario = insumo.costoPorUnidadBase * UnidadesUtil.aBase(unidad, 1);
-        setModalState(() {
-          cantCompraCtrl.text = '1';
-          precioCtrl.text = precioUnitario.toStringAsFixed(4);
-          autoDelAlmacen = true;
-        });
+        cantCompraCtrl.text = '1';
+        precioCtrl.text = precioUnitario.toStringAsFixed(4);
+        autoDelAlmacen = true;
       } else if (autoDelAlmacen) {
-        setModalState(() => autoDelAlmacen = false);
+        autoDelAlmacen = false;
       }
+      recalcularPreview(setModalState);
     }
 
     await showModalBottomSheet(
@@ -139,7 +156,15 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                   ),
                   const SizedBox(height: 10),
                   Row(children: [
-                    Expanded(child: TextField(controller: cantCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cantidad usada'))),
+                    Expanded(
+                      child: TextField(
+                        controller: cantCtrl,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: const InputDecoration(labelText: 'Cantidad usada'),
+                        onChanged: (_) => recalcularPreview(setModalState),
+                      ),
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: DropdownButtonFormField<String>(
@@ -180,26 +205,31 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                     Text('Costo de compra de referencia', style: Theme.of(context).textTheme.bodyMedium),
                   const SizedBox(height: 6),
                   Row(children: [
-                    Expanded(child: TextField(controller: precioCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Precio'))),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 90,
-                      child: DropdownButtonFormField<Moneda>(
-                        value: monedaPrecio,
-                        isDense: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Moneda',
-                          contentPadding: EdgeInsets.fromLTRB(12, 10, 12, 10),
-                        ),
-                        items: Moneda.values
-                            .map((m) => DropdownMenuItem(value: m, child: Text(m.simbolo)))
-                            .toList(),
-                        onChanged: (v) => setModalState(() => monedaPrecio = v ?? monedaPrecio),
+                    Expanded(
+                      child: TextField(
+                        controller: precioCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                        decoration: const InputDecoration(labelText: 'Precio'),
+                        onChanged: (_) => recalcularPreview(setModalState),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(child: TextField(controller: cantCompraCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Por cantidad'))),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: cantCompraCtrl,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: const InputDecoration(labelText: 'Por cantidad'),
+                        onChanged: (_) => recalcularPreview(setModalState),
+                      ),
+                    ),
                   ]),
+                  if (costoCalculadoPreview != null) ...[
+                    const SizedBox(height: 10),
+                    Text('≈ \$${costoCalculadoPreview!.toStringAsFixed(2)} de costo para esta receta',
+                        style: const TextStyle(color: AppColors.acentoMenta, fontWeight: FontWeight.w600)),
+                  ],
                   const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
@@ -207,10 +237,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                       onPressed: () {
                         final nombre = nombreCtrl.text.trim();
                         final cantidad = double.tryParse(cantCtrl.text) ?? 0;
-                        final precioIngresado = double.tryParse(precioCtrl.text) ?? 0;
-                        final precio = autoDelAlmacen
-                            ? precioIngresado
-                            : monedaProvider.convertirACup(precioIngresado, monedaPrecio);
+                        final precio = double.tryParse(precioCtrl.text) ?? 0;
                         final cantCompra = double.tryParse(cantCompraCtrl.text) ?? 1;
                         if (nombre.isEmpty || cantidad <= 0) return;
                         setState(() {
@@ -316,7 +343,34 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
       );
     }
     final img = _imagenPath!.startsWith('http')
-        ? Image.network(_imagenPath!, height: 160, width: double.infinity, fit: BoxFit.cover)
+        ? Image.network(
+            _imagenPath!,
+            height: 160,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progreso) {
+              if (progreso == null) return child;
+              return Container(
+                height: 160,
+                color: AppColors.tarjeta,
+                child: const Center(child: CircularProgressIndicator(color: AppColors.acentoMenta)),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => Container(
+              height: 160,
+              decoration: BoxDecoration(color: AppColors.tarjeta, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divisor)),
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.broken_image_outlined, size: 32, color: AppColors.textoSecundario),
+                    SizedBox(height: 6),
+                    Text('No se pudo cargar la imagen de esa URL', style: TextStyle(color: AppColors.textoSecundario, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ),
+          )
         : Image.file(File(_imagenPath!), height: 160, width: double.infinity, fit: BoxFit.cover);
     return ClipRRect(borderRadius: BorderRadius.circular(16), child: img);
   }
@@ -362,11 +416,11 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
           ),
           const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: TextField(controller: _prepCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Prep. (min)'))),
+            Expanded(child: TextField(controller: _prepCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Prep. (min)'))),
             const SizedBox(width: 10),
-            Expanded(child: TextField(controller: _coccionCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cocción (min)'))),
+            Expanded(child: TextField(controller: _coccionCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Cocción (min)'))),
             const SizedBox(width: 10),
-            Expanded(child: TextField(controller: _porcionesCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Porciones'), onChanged: (_) => setState(() {}))),
+            Expanded(child: TextField(controller: _porcionesCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Porciones'), onChanged: (_) => setState(() {}))),
           ]),
           const SizedBox(height: 24),
 

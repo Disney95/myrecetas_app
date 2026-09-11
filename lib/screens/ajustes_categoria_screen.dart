@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/categorias_provider.dart';
-import '../models/receta.dart';
+import '../models/categoria_custom.dart';
 import '../theme/app_theme.dart';
 
 class AjustesCategoriaScreen extends StatelessWidget {
   const AjustesCategoriaScreen({super.key});
 
-  void _nuevaCategoriaDialog(BuildContext context) {
-    final nombreCtrl = TextEditingController();
-    String? imagenPath;
+  void _editarCategoriaDialog(BuildContext context, {CategoriaCustom? existente}) {
+    final nombreCtrl = TextEditingController(text: existente?.nombre ?? '');
+    String? imagenPath = existente?.imagenPath;
 
     showModalBottomSheet(
       context: context,
@@ -28,7 +28,8 @@ class AjustesCategoriaScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Nueva categoría', style: Theme.of(context).textTheme.titleMedium),
+                Text(existente == null ? 'Nueva categoría' : 'Editar categoría',
+                    style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 14),
                 GestureDetector(
                   onTap: () async {
@@ -49,7 +50,25 @@ class AjustesCategoriaScreen extends StatelessWidget {
                     ),
                     child: imagenPath == null
                         ? const Center(child: Icon(Icons.add_photo_alternate_outlined, color: AppColors.textoSecundario, size: 32))
-                        : null,
+                        : Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.black54,
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(Icons.edit, size: 14, color: Colors.white),
+                                  onPressed: () async {
+                                    final picker = ImagePicker();
+                                    final archivo = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+                                    if (archivo != null) setModalState(() => imagenPath = archivo.path);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -60,10 +79,16 @@ class AjustesCategoriaScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (nombreCtrl.text.trim().isEmpty) return;
-                      await context.read<CategoriasProvider>().agregarCategoria(nombreCtrl.text.trim(), imagenPath);
+                      final provider = context.read<CategoriasProvider>();
+                      if (existente == null) {
+                        await provider.agregarCategoria(nombreCtrl.text.trim(), imagenPath);
+                      } else {
+                        await provider.editarCategoria(existente,
+                            nombre: nombreCtrl.text.trim(), imagenPath: imagenPath);
+                      }
                       if (ctx.mounted) Navigator.pop(ctx);
                     },
-                    child: const Text('Guardar categoría'),
+                    child: Text(existente == null ? 'Guardar categoría' : 'Guardar cambios'),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -75,46 +100,71 @@ class AjustesCategoriaScreen extends StatelessWidget {
     );
   }
 
+  void _confirmarEliminar(BuildContext context, CategoriaCustom categoria) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar categoría'),
+        content: Text('¿Eliminar "${categoria.nombre}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () {
+              context.read<CategoriasProvider>().eliminarCategoria(categoria);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CategoriasProvider>();
+    final categorias = provider.categorias;
     return Scaffold(
       appBar: AppBar(title: const Text('Categorías')),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.acentoMenta,
-        onPressed: () => _nuevaCategoriaDialog(context),
+        onPressed: () => _editarCategoriaDialog(context),
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Por defecto', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          ...categoriasPorDefecto.map((c) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(leading: const Icon(Icons.folder_outlined), title: Text(c)),
-              )),
-          const SizedBox(height: 16),
-          Text('Personalizadas', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          if (provider.personalizadas.isEmpty)
-            Text('Todavía no creaste ninguna.', style: Theme.of(context).textTheme.bodyMedium)
-          else
-            ...provider.personalizadas.map((c) => Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: c.imagenPath != null
-                        ? CircleAvatar(backgroundImage: FileImage(File(c.imagenPath!)))
-                        : const CircleAvatar(child: Icon(Icons.folder_outlined)),
-                    title: Text(c.nombre),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: AppColors.textoSecundario),
-                      onPressed: () => context.read<CategoriasProvider>().eliminarCategoria(c),
-                    ),
-                  ),
-                )),
-        ],
-      ),
+      body: categorias.isEmpty
+          ? Center(
+              child: Text('No hay categorías todavía.\nAgregá la primera con el botón +.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: categorias
+                  .map((c) => Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          onTap: () => _editarCategoriaDialog(context, existente: c),
+                          leading: c.imagenPath != null
+                              ? CircleAvatar(backgroundImage: FileImage(File(c.imagenPath!)))
+                              : const CircleAvatar(child: Icon(Icons.folder_outlined)),
+                          title: Text(c.nombre),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, color: AppColors.textoSecundario),
+                                onPressed: () => _editarCategoriaDialog(context, existente: c),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: AppColors.textoSecundario),
+                                onPressed: () => _confirmarEliminar(context, c),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
     );
   }
 }

@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../theme/app_theme.dart';
 import 'ajustes_categoria_screen.dart';
 import 'ajustes_tema_screen.dart';
 import 'ajustes_moneda_screen.dart';
 
-class AjustesScreen extends StatelessWidget {
+class AjustesScreen extends StatefulWidget {
   const AjustesScreen({super.key});
+
+  @override
+  State<AjustesScreen> createState() => _AjustesScreenState();
+}
+
+class _AjustesScreenState extends State<AjustesScreen> {
+  PackageInfo? _info;
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _info = info);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +51,25 @@ class AjustesScreen extends StatelessWidget {
             subtitulo: 'EUR, USD y conversión a CUP',
             destino: const AjustesMonedaScreen(),
           ),
+          const SizedBox(height: 24),
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  _info?.appName ?? 'MyRecestas',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _info == null
+                      ? 'Versión...'
+                      : 'Versión ${_info!.version} (build ${_info!.buildNumber})',
+                  style: const TextStyle(color: AppColors.textoSecundario, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
         ],
       ),
     );
