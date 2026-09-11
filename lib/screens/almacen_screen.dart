@@ -22,6 +22,7 @@ class AlmacenScreen extends StatelessWidget {
     Moneda moneda = Moneda.values.firstWhere(
         (m) => m.name == (existente?.moneda ?? 'cup'),
         orElse: () => Moneda.cup);
+    final monedaBtnKey = GlobalKey();
 
     showModalBottomSheet(
       context: context,
@@ -49,6 +50,7 @@ class AlmacenScreen extends StatelessWidget {
                   const SizedBox(height: 14),
                   TextField(
                     controller: nombreCtrl,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(labelText: 'Nombre del producto'),
                   ),
                   const SizedBox(height: 10),
@@ -92,17 +94,56 @@ class AlmacenScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     SizedBox(
                       width: 90,
-                      child: DropdownButtonFormField<Moneda>(
-                        value: moneda,
-                        isDense: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Moneda',
-                          contentPadding: EdgeInsets.fromLTRB(12, 10, 12, 10),
+                      child: InkWell(
+                        key: monedaBtnKey,
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () async {
+                          // Si hay un teclado abierto (por ej. editando "Costo
+                          // total pagado"), lo cerramos primero y esperamos a
+                          // que la pantalla termine de acomodarse antes de
+                          // calcular dónde debe aparecer el menú. Así evitamos
+                          // que el menú quede mal ubicado al cerrarse el
+                          // teclado de golpe.
+                          final teníaFoco = FocusScope.of(ctx).hasFocus &&
+                              FocusScope.of(ctx).focusedChild != null;
+                          FocusScope.of(ctx).unfocus();
+                          if (teníaFoco) {
+                            await Future.delayed(const Duration(milliseconds: 200));
+                          }
+                          if (!ctx.mounted) return;
+                          final box = monedaBtnKey.currentContext?.findRenderObject() as RenderBox?;
+                          if (box == null) return;
+                          final offset = box.localToGlobal(Offset.zero);
+                          final seleccion = await showMenu<Moneda>(
+                            context: ctx,
+                            position: RelativeRect.fromLTRB(
+                              offset.dx,
+                              offset.dy + box.size.height,
+                              offset.dx + box.size.width,
+                              offset.dy,
+                            ),
+                            color: Theme.of(ctx).cardTheme.color,
+                            items: Moneda.values
+                                .map((m) => PopupMenuItem(value: m, child: Text(m.simbolo)))
+                                .toList(),
+                          );
+                          if (seleccion != null) {
+                            setModalState(() => moneda = seleccion);
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Moneda',
+                            contentPadding: EdgeInsets.fromLTRB(12, 10, 12, 10),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(moneda.simbolo),
+                              const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textoSecundario),
+                            ],
+                          ),
                         ),
-                        items: Moneda.values
-                            .map((m) => DropdownMenuItem(value: m, child: Text(m.simbolo)))
-                            .toList(),
-                        onChanged: (v) => setModalState(() => moneda = v ?? moneda),
                       ),
                     ),
                   ]),

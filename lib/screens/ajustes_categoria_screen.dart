@@ -72,19 +72,35 @@ class AjustesCategoriaScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: 'Nombre de la categoría')),
+                if (existente?.id == 'todas')
+                  TextField(
+                    controller: nombreCtrl,
+                    enabled: false,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre de la categoría',
+                      helperText: 'Esta categoría agrupa todas las recetas: su nombre no se puede cambiar.',
+                    ),
+                  )
+                else
+                  TextField(
+                    controller: nombreCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(labelText: 'Nombre de la categoría'),
+                  ),
                 const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (nombreCtrl.text.trim().isEmpty) return;
+                      final esTodas = existente?.id == 'todas';
+                      if (!esTodas && nombreCtrl.text.trim().isEmpty) return;
                       final provider = context.read<CategoriasProvider>();
                       if (existente == null) {
                         await provider.agregarCategoria(nombreCtrl.text.trim(), imagenPath);
                       } else {
                         await provider.editarCategoria(existente,
-                            nombre: nombreCtrl.text.trim(), imagenPath: imagenPath);
+                            nombre: esTodas ? existente.nombre : nombreCtrl.text.trim(),
+                            imagenPath: imagenPath);
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
                     },
@@ -155,10 +171,11 @@ class AjustesCategoriaScreen extends StatelessWidget {
                                 icon: const Icon(Icons.edit_outlined, color: AppColors.textoSecundario),
                                 onPressed: () => _editarCategoriaDialog(context, existente: c),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: AppColors.textoSecundario),
-                                onPressed: () => _confirmarEliminar(context, c),
-                              ),
+                              if (c.id != 'todas')
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: AppColors.textoSecundario),
+                                  onPressed: () => _confirmarEliminar(context, c),
+                                ),
                             ],
                           ),
                         ),

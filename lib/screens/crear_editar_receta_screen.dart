@@ -151,6 +151,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                   const SizedBox(height: 14),
                   TextField(
                     controller: nombreCtrl,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(labelText: 'Nombre del ingrediente'),
                     onChanged: (_) => intentarAutocompletar(setModalState),
                   ),
@@ -185,32 +186,19 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                     ),
                   ]),
                   const SizedBox(height: 10),
-                  if (autoDelAlmacen)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.acentoMenta.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(children: const [
-                        Icon(Icons.inventory_2_outlined, size: 16, color: AppColors.acentoMenta),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text('Precio tomado del almacén automáticamente',
-                              style: TextStyle(fontSize: 12, color: AppColors.acentoMenta, fontWeight: FontWeight.w600)),
-                        ),
-                      ]),
-                    )
-                  else
-                    Text('Costo de compra de referencia', style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(height: 6),
                   Row(children: [
                     Expanded(
                       child: TextField(
                         controller: precioCtrl,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                        decoration: const InputDecoration(labelText: 'Precio'),
+                        decoration: InputDecoration(
+                          labelText: 'Precio',
+                          suffixText: costoCalculadoPreview != null
+                              ? '≈ \$${costoCalculadoPreview!.toStringAsFixed(2)}'
+                              : null,
+                          suffixStyle: const TextStyle(color: AppColors.acentoMenta, fontWeight: FontWeight.w600),
+                        ),
                         onChanged: (_) => recalcularPreview(setModalState),
                       ),
                     ),
@@ -225,11 +213,6 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                       ),
                     ),
                   ]),
-                  if (costoCalculadoPreview != null) ...[
-                    const SizedBox(height: 10),
-                    Text('≈ \$${costoCalculadoPreview!.toStringAsFixed(2)} de costo para esta receta',
-                        style: const TextStyle(color: AppColors.acentoMenta, fontWeight: FontWeight.w600)),
-                  ],
                   const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
@@ -394,7 +377,11 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
             IconButton(onPressed: _usarUrlImagen, icon: const Icon(Icons.check_circle_outline, color: AppColors.acentoMenta)),
           ]),
           const SizedBox(height: 20),
-          TextField(controller: _nombreCtrl, decoration: const InputDecoration(labelText: 'Nombre de la receta')),
+          TextField(
+            controller: _nombreCtrl,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(labelText: 'Nombre de la receta'),
+          ),
           const SizedBox(height: 14),
           Consumer<CategoriasProvider>(
             builder: (context, categoriasProvider, _) {

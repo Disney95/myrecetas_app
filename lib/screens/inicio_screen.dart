@@ -56,7 +56,8 @@ class _InicioScreenState extends State<InicioScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
-                        _tarjetaCategoria(context, 'Todas', null, _filtro == null),
+                        _tarjetaCategoria(context, 'Todas',
+                            categoriasProvider.imagenDe('Todas'), _filtro == null),
                         ...categoriasProvider.nombres.map((c) => _tarjetaCategoria(
                             context, c, categoriasProvider.imagenDe(c), _filtro == c)),
                       ],
