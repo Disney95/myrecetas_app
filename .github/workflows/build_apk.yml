@@ -33,6 +33,11 @@ jobs:
         run: |
           sed -i 's/android:label="[^"]*"/android:label="MyRecestas"/' android/app/src/main/AndroidManifest.xml
 
+      - name: Agregar permiso de Internet (necesario para imágenes por URL)
+        run: |
+          grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml || \
+          sed -i '/<manifest[^>]*>/a\    <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
+
       - name: Generar ícono de la app
         run: dart run flutter_launcher_icons
 
