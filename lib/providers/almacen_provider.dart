@@ -26,6 +26,8 @@ class AlmacenProvider extends ChangeNotifier {
     required double cantidadComprada,
     required String unidad,
     required double costoTotal,
+    String moneda = 'cup',
+    double? costoOriginal,
   }) async {
     final insumo = Insumo(
       id: id ?? _uuid.v4(),
@@ -33,6 +35,8 @@ class AlmacenProvider extends ChangeNotifier {
       cantidadComprada: cantidadComprada,
       unidad: unidad,
       costoTotal: costoTotal,
+      moneda: moneda,
+      costoOriginal: costoOriginal,
     );
     await _db.guardarInsumo(insumo);
     await cargarInsumos();
