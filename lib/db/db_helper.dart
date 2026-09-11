@@ -21,15 +21,21 @@ class DBHelper {
     final path = join(await getDatabasesPath(), 'recetas_app.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await _crearTablasV1(db);
         await _crearTablasV2(db);
+        await _crearTablasV3(db);
+        await _sembrarCategoriasPorDefecto(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _crearTablasV2(db);
         }
+        if (oldVersion < 3) {
+          await _migrarV3(db);
+        }
+        await _sembrarCategoriasPorDefecto(db);
       },
     );
   }
@@ -72,6 +78,58 @@ class DBHelper {
     ''');
   }
 
+  /// v3: las categorías "por defecto" pasan a vivir también en la tabla
+  /// (para poder editarles nombre/imagen) y se agrega un orden estable.
+  /// Los insumos guardan además la moneda original con la que se cargó
+  /// el costo, para poder mostrarla sin perder el costo ya convertido a CUP.
+  Future<void> _crearTablasV3(Database db) async {
+    await db.execute(
+        'ALTER TABLE categorias ADD COLUMN orden INTEGER DEFAULT 0');
+    await db.execute(
+        "ALTER TABLE insumos ADD COLUMN moneda TEXT DEFAULT 'cup'");
+    await db.execute(
+        'ALTER TABLE insumos ADD COLUMN costoOriginal REAL');
+    await db.execute(
+        'UPDATE insumos SET costoOriginal = costoTotal WHERE costoOriginal IS NULL');
+  }
+
+  Future<void> _migrarV3(Database db) async {
+    final columnasCategorias = await db.rawQuery('PRAGMA table_info(categorias)');
+    final tieneOrden = columnasCategorias.any((c) => c['name'] == 'orden');
+    if (!tieneOrden) {
+      await db.execute('ALTER TABLE categorias ADD COLUMN orden INTEGER DEFAULT 0');
+    }
+    final columnasInsumos = await db.rawQuery('PRAGMA table_info(insumos)');
+    if (!columnasInsumos.any((c) => c['name'] == 'moneda')) {
+      await db.execute("ALTER TABLE insumos ADD COLUMN moneda TEXT DEFAULT 'cup'");
+    }
+    if (!columnasInsumos.any((c) => c['name'] == 'costoOriginal')) {
+      await db.execute('ALTER TABLE insumos ADD COLUMN costoOriginal REAL');
+      await db.execute(
+          'UPDATE insumos SET costoOriginal = costoTotal WHERE costoOriginal IS NULL');
+    }
+  }
+
+  /// Inserta las categorías por defecto (Postres/Dulces, Salados/Comidas,
+  /// Bebidas) en la tabla si todavía no existen, para que queden editables
+  /// como cualquier otra categoría (nombre e imagen).
+  Future<void> _sembrarCategoriasPorDefecto(Database db) async {
+    for (var i = 0; i < categoriasPorDefecto.length; i++) {
+      final nombre = categoriasPorDefecto[i];
+      final existentes = await db.query('categorias',
+          where: 'nombre = ?', whereArgs: [nombre], limit: 1);
+      if (existentes.isEmpty) {
+        await db.insert(
+            'categorias',
+            CategoriaCustom(
+              id: 'default_$i',
+              nombre: nombre,
+              orden: i,
+            ).toMap());
+      }
+    }
+  }
+
   // ---- CRUD Recetas ----
   Future<void> guardarReceta(Receta receta) async {
     final db = await database;
@@ -108,7 +166,7 @@ class DBHelper {
     await db.delete('insumos', where: 'id = ?', whereArgs: [id]);
   }
 
-  // ---- CRUD Categorías personalizadas ----
+  // ---- CRUD Categorías ----
   Future<void> guardarCategoria(CategoriaCustom categoria) async {
     final db = await database;
     await db.insert('categorias', categoria.toMap(),
@@ -117,7 +175,7 @@ class DBHelper {
 
   Future<List<CategoriaCustom>> obtenerCategorias() async {
     final db = await database;
-    final maps = await db.query('categorias', orderBy: 'nombre ASC');
+    final maps = await db.query('categorias', orderBy: 'orden ASC');
     return maps.map((m) => CategoriaCustom.fromMap(m)).toList();
   }
 
