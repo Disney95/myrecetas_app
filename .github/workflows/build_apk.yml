@@ -1,0 +1,46 @@
+name: Compilar APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Generar carpetas de plataforma (android/ios) si faltan
+        run: flutter create --platforms=android .
+
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      - name: Poner nombre de la app (MyRecestas)
+        run: |
+          sed -i 's/android:label="[^"]*"/android:label="MyRecestas"/' android/app/src/main/AndroidManifest.xml
+
+      - name: Generar ícono de la app
+        run: dart run flutter_launcher_icons
+
+      - name: Compilar APK release
+        run: flutter build apk --release
+
+      - name: Subir APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: recetas-app-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
