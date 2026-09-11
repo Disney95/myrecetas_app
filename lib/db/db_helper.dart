@@ -114,6 +114,13 @@ class DBHelper {
   /// Bebidas) en la tabla si todavía no existen, para que queden editables
   /// como cualquier otra categoría (nombre e imagen).
   Future<void> _sembrarCategoriasPorDefecto(Database db) async {
+    final existeTodas = await db.query('categorias',
+        where: 'id = ?', whereArgs: ['todas'], limit: 1);
+    if (existeTodas.isEmpty) {
+      await db.insert(
+          'categorias',
+          CategoriaCustom(id: 'todas', nombre: 'Todas', orden: -1).toMap());
+    }
     for (var i = 0; i < categoriasPorDefecto.length; i++) {
       final nombre = categoriasPorDefecto[i];
       final existentes = await db.query('categorias',
