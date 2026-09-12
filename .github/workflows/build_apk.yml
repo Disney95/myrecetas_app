@@ -43,6 +43,11 @@ jobs:
           grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml || \
           sed -i '/<manifest[^>]*>/a\    <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
 
+      - name: Permitir tráfico HTTP además de HTTPS (algunas URL de imagen no usan https)
+        run: |
+          grep -q 'usesCleartextTraffic' android/app/src/main/AndroidManifest.xml || \
+          sed -i 's/<application/<application\n        android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+
       - name: Generar ícono de la app
         run: dart run flutter_launcher_icons
 
