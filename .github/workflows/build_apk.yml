@@ -71,8 +71,7 @@ jobs:
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           cd android
-          ./gradlew clean
-          ./gradlew assembleRelease \
+          ./gradlew :app:assembleRelease --rerun-tasks --stacktrace \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/release.keystore \
             -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS \
@@ -80,7 +79,11 @@ jobs:
 
       - name: Verificar que el APK firmado se haya generado (diagnóstico)
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
-        run: find android/app/build/outputs/apk -type f -name "*.apk" -exec ls -lh {} \;
+        run: |
+          echo "--- Árbol de android/app/build (o aviso si no existe) ---"
+          find android/app/build -maxdepth 4 2>&1 || echo "android/app/build no existe"
+          echo "--- Cualquier .apk en todo el repo ---"
+          find . -name "*.apk" -exec ls -lh {} \; 2>&1 || echo "No se encontró ningún .apk"
 
       - name: Subir APK de release firmado como artefacto descargable
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
