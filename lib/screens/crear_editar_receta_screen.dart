@@ -188,21 +188,23 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                   const SizedBox(height: 10),
                   Row(children: [
                     Expanded(
-                      child: TextField(
-                        controller: precioCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                        style: const TextStyle(color: Colors.transparent),
-                        cursorColor: AppColors.acentoMenta,
-                        decoration: InputDecoration(
-                          labelText: 'Precio',
-                          suffixText: costoCalculadoPreview != null
-                              ? '≈ \$${costoCalculadoPreview!.toStringAsFixed(2)}'
-                              : null,
-                          suffixStyle: const TextStyle(color: AppColors.acentoMenta, fontWeight: FontWeight.w600),
-                        ),
-                        onChanged: (_) => recalcularPreview(setModalState),
-                      ),
+                      child: autoDelAlmacen
+                          ? InputDecorator(
+                              decoration: const InputDecoration(labelText: 'Precio'),
+                              child: Text(
+                                costoCalculadoPreview != null
+                                    ? '≈ \$${costoCalculadoPreview!.toStringAsFixed(2)}'
+                                    : '—',
+                                style: const TextStyle(color: AppColors.acentoMenta, fontWeight: FontWeight.w600),
+                              ),
+                            )
+                          : TextField(
+                              controller: precioCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                              decoration: const InputDecoration(labelText: 'Precio'),
+                              onChanged: (_) => recalcularPreview(setModalState),
+                            ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -344,14 +346,26 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
             errorBuilder: (context, error, stackTrace) => Container(
               height: 160,
               decoration: BoxDecoration(color: AppColors.tarjeta, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divisor)),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.broken_image_outlined, size: 32, color: AppColors.textoSecundario),
-                    SizedBox(height: 6),
-                    Text('No se pudo cargar la imagen de esa URL', style: TextStyle(color: AppColors.textoSecundario, fontSize: 12)),
-                  ],
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.broken_image_outlined, size: 32, color: AppColors.textoSecundario),
+                      SizedBox(height: 6),
+                      Text('No se pudo cargar la imagen de esa URL',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.textoSecundario, fontSize: 12, fontWeight: FontWeight.w600)),
+                      SizedBox(height: 4),
+                      Text(
+                        'Ese enlace no apunta directo a un archivo de imagen (por ejemplo, un enlace de Pinterest a una publicación no funciona). '
+                        'Mantén presionada la imagen en el navegador y elige "Copiar dirección de imagen" para obtener el enlace correcto.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.textoSecundario, fontSize: 11),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
