@@ -71,15 +71,20 @@ jobs:
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           cd android
+          ./gradlew clean
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/release.keystore \
             -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS \
             -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD
 
+      - name: Verificar que el APK firmado se haya generado (diagnóstico)
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        run: find android/app/build/outputs/apk -type f -name "*.apk" -exec ls -lh {} \;
+
       - name: Subir APK de release firmado como artefacto descargable
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: recetas-app-apk-firmado
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/*.apk
