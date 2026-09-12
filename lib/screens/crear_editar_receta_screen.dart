@@ -192,6 +192,8 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                         controller: precioCtrl,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                        style: const TextStyle(color: Colors.transparent),
+                        cursorColor: AppColors.acentoMenta,
                         decoration: InputDecoration(
                           labelText: 'Precio',
                           suffixText: costoCalculadoPreview != null

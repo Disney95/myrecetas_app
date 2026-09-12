@@ -104,9 +104,6 @@ class _InicioScreenState extends State<InicioScreen> {
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-              color: seleccionada ? AppColors.acentoMenta : AppColors.divisor,
-              width: seleccionada ? 2 : 1),
           color: AppColors.acentoCrema,
           image: imagenPath != null
               ? DecorationImage(image: FileImage(File(imagenPath)), fit: BoxFit.cover)
@@ -116,6 +113,16 @@ class _InicioScreenState extends State<InicioScreen> {
           children: [
             if (imagenPath == null)
               const Center(child: Icon(Icons.category_outlined, size: 30, color: AppColors.textoSecundario)),
+            if (seleccionada)
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(color: AppColors.acentoMenta, shape: BoxShape.circle),
+                  child: const Icon(Icons.check, size: 12, color: Colors.white),
+                ),
+              ),
             Positioned(
               left: 0, right: 0, bottom: 0,
               child: Container(
