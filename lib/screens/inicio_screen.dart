@@ -164,27 +164,27 @@ class _InicioScreenState extends State<InicioScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: SizedBox(width: 80, height: 80, child: _imagenReceta(receta)),
+                child: SizedBox(width: 96, height: 96, child: _imagenReceta(receta)),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.only(top: 6),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(receta.nombre,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                      const SizedBox(height: 8),
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
-                          _datoChico('${receta.tiempoCoccion}min'),
+                          Expanded(child: _datoChico('${receta.tiempoCoccion}min')),
                           _divisorVertical(),
-                          _datoChico('${receta.precioVentaSugerido.toStringAsFixed(0)}cup'),
+                          Expanded(child: _datoChico('${receta.precioVentaSugerido.toStringAsFixed(0)}cup')),
                           _divisorVertical(),
-                          _datoChico('${receta.porciones.toStringAsFixed(0)} und'),
+                          Expanded(child: _datoChico('${receta.porciones.toStringAsFixed(0)} und')),
                         ],
                       ),
                     ],
