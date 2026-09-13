@@ -34,7 +34,7 @@ jobs:
       - name: Instalar dependencias
         run: flutter pub get
 
-      - name: Poner nombre de la app (MyRecestas)
+      - name: Poner nombre de la app (MyRecetas)
         run: |
           sed -i 's/android:label="[^"]*"/android:label="MyRecestas"/' android/app/src/main/AndroidManifest.xml
 
