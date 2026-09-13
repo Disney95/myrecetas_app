@@ -26,42 +26,78 @@ class RecetaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
+        borderRadius: BorderRadius.circular(12),
         onTap: onTap,
-        child: Row(
-          children: [
-            SizedBox(width: 90, height: 90, child: _imagen()),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(receta.nombre,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Text(receta.categoria,
-                        style: Theme.of(context).textTheme.bodyMedium),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _chip('Costo/porción \$${receta.costoPorPorcion.toStringAsFixed(2)}',
-                            AppColors.textoPrincipal),
-                        const SizedBox(width: 6),
-                        _chip('Margen ${receta.margenGanancia.toStringAsFixed(0)}%',
-                            AppColors.exito),
-                      ],
-                    ),
-                  ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(width: 84, height: 84, child: _imagen()),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(receta.nombre,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          _dato('${receta.tiempoCoccion}min'),
+                          _divisorVertical(),
+                          _dato('${receta.tiempoPreparacion}min'),
+                          _divisorVertical(),
+                          _dato(receta.porciones.toStringAsFixed(0)),
+                          _divisorVertical(),
+                          _dato('${receta.precioVentaSugerido.toStringAsFixed(0)}cup'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _chip('Costo/porción \$${receta.costoPorPorcion.toStringAsFixed(2)}',
+                              AppColors.textoPrincipal),
+                          const SizedBox(width: 6),
+                          _chip('Margen ${receta.margenGanancia.toStringAsFixed(0)}%',
+                              AppColors.exito),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _dato(String texto) {
+    return Text(
+      texto,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(fontSize: 11.5, color: AppColors.textoSecundario, fontWeight: FontWeight.w600),
+    );
+  }
+
+  Widget _divisorVertical() {
+    return Container(
+      width: 1,
+      height: 12,
+      color: AppColors.divisor,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
     );
   }
 
