@@ -28,7 +28,20 @@ Este repo está preparado para que **GitHub Actions compile el APK automáticame
 
 Si querés forzar una compilación manual sin hacer push, podés ir a **Actions → Compilar APK → Run workflow**.
 
-## 💻 Cómo correrla localmente (opcional, si instalás Flutter)
+## 🔐 Prueba gratis y activación
+
+La app tiene **3 días de prueba gratis**, contados desde la fecha real de instalación en Android (`firstInstallTime`, vía el plugin `install_time_plugin`). Mientras la prueba está activa (o si ya venció y no se activó):
+
+- Se ve un cartel en Inicio con los días restantes (o el aviso de prueba vencida).
+- "Moneda" en Ajustes queda bloqueada con un candado.
+- "Galería" y "Pegar URL de imagen" al crear/editar receta quedan bloqueadas con candado.
+- En "Nuevo ingrediente", el campo "Precio" no muestra el valor numérico que se escribe (queda oculto, aunque sigue funcionando para los cálculos de costo).
+
+Para activar la app de forma permanente, la pantalla "Activar app" (accesible desde el cartel de Inicio o desde cualquier función bloqueada) muestra un **identificador único del dispositivo**. El cliente envía ese identificador a quien le vendió la app, quien genera un **código de activación atado a ese dispositivo puntual** (firma RSA-SHA256 sobre el identificador). Un código generado para un celular no sirve en otro. La clave pública vive en el código de la app; la clave privada se guarda fuera del proyecto (no se sube a GitHub). Los detalles y el script para generar códigos se entregan aparte de este repositorio.
+
+Una vez activada, todos los bloqueos y el cartel de prueba desaparecen automáticamente, sin reiniciar la app.
+
+
 ```bash
 flutter pub get
 flutter run

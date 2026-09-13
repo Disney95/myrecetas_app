@@ -20,6 +20,9 @@ dependencies:
   uuid: ^4.3.3
   shared_preferences: ^2.2.2
   package_info_plus: ^8.0.0
+  install_time_plugin: ^0.0.2
+  basic_utils: ^5.8.2
+  device_info_plus: ^9.1.2
 
 dev_dependencies:
   flutter_test:
