@@ -51,7 +51,7 @@ class _InicioScreenState extends State<InicioScreen> {
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    height: 150,
+                    height: 188,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -79,14 +79,16 @@ class _InicioScreenState extends State<InicioScreen> {
                       ),
                     )
                   else
-                    SizedBox(
-                      height: 190,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        children: recetas
-                            .map((r) => _tarjetaReceta(context, r))
-                            .toList(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < recetas.length; i++) ...[
+                            _filaReceta(context, recetas[i]),
+                            if (i != recetas.length - 1)
+                              const Divider(height: 1, thickness: 0.6),
+                          ],
+                        ],
                       ),
                     ),
                 ],
@@ -148,50 +150,49 @@ class _InicioScreenState extends State<InicioScreen> {
     );
   }
 
-  Widget _tarjetaReceta(BuildContext context, Receta receta) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => DetalleRecetaScreen(receta: receta))),
-      child: Container(
-        width: 165,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divisor),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 100,
-              width: double.infinity,
-              child: _imagenReceta(receta),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(receta.nombre,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                  const SizedBox(height: 6),
-                  Row(
+  Widget _filaReceta(BuildContext context, Receta receta) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.push(
+            context, MaterialPageRoute(builder: (_) => DetalleRecetaScreen(receta: receta))),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(width: 80, height: 80, child: _imagenReceta(receta)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _datoChico('${receta.tiempoCoccion}min')),
-                      _divisorVertical(),
-                      Expanded(child: _datoChico('${receta.precioVentaSugerido.toStringAsFixed(0)}cup')),
-                      _divisorVertical(),
-                      Expanded(child: _datoChico('${receta.porciones.toStringAsFixed(0)} und')),
+                      Text(receta.nombre,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _datoChico('${receta.tiempoCoccion}min'),
+                          _divisorVertical(),
+                          _datoChico('${receta.precioVentaSugerido.toStringAsFixed(0)}cup'),
+                          _divisorVertical(),
+                          _datoChico('${receta.porciones.toStringAsFixed(0)} und'),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

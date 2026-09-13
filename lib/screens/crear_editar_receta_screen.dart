@@ -72,10 +72,18 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
   }
 
   void _usarUrlImagen() {
-    final url = _urlImagenCtrl.text.trim();
+    // Al pegar desde otras apps a veces llegan espacios o caracteres
+    // invisibles (comillas curvas, saltos de línea, zero-width space) que
+    // hacían fallar la validación aunque la URL fuera correcta.
+    var url = _urlImagenCtrl.text.trim();
+    url = url.replaceAll(RegExp(r'[\u200B-\u200D\uFEFF\u00A0]'), '');
+    url = url.replaceAll('"', '').replaceAll("'", '');
     if (url.isEmpty) return;
-    final valida = Uri.tryParse(url)?.hasAbsolutePath == true &&
-        (url.startsWith('http://') || url.startsWith('https://'));
+
+    final uri = Uri.tryParse(url);
+    final valida = uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
     if (!valida) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Esa URL no es válida. Debe empezar con http:// o https://')));
@@ -85,6 +93,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
       _imagenPath = url;
       _urlImagenCtrl.clear();
     });
+    FocusScope.of(context).unfocus();
   }
 
   double get _costoMateriaPrima =>
@@ -388,7 +397,13 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
           ]),
           const SizedBox(height: 8),
           Row(children: [
-            Expanded(child: TextField(controller: _urlImagenCtrl, decoration: const InputDecoration(labelText: 'O pegar URL de imagen'))),
+            Expanded(child: TextField(
+              controller: _urlImagenCtrl,
+              keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _usarUrlImagen(),
+              decoration: const InputDecoration(labelText: 'O pegar URL de imagen'),
+            )),
             const SizedBox(width: 8),
             IconButton(onPressed: _usarUrlImagen, icon: const Icon(Icons.check_circle_outline, color: AppColors.acentoMenta)),
           ]),
