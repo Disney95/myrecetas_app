@@ -27,6 +27,12 @@ import 'package:android_id/android_id.dart';
 class LicenciaProvider extends ChangeNotifier {
   static const int diasPrueba = 3;
 
+  /// Interruptor para uso personal: en false, la app queda siempre
+  /// activada y no se pide ni la prueba gratis ni el código offline.
+  /// Para volver a activar la prueba/verificación para clientes, poner
+  /// esto en true de nuevo.
+  static const bool _bloqueoHabilitado = false;
+
   // Clave pública RSA exclusiva de esta app (no es la misma de POS Pro).
   static const String _clavePublicaPem = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz1DSIRLK+JqpSjqLKsKI
@@ -61,6 +67,14 @@ HwIDAQAB
   bool get bloqueada => !_activada && _diasRestantes <= 0;
 
   Future<void> inicializar() async {
+    if (!_bloqueoHabilitado) {
+      _activada = true;
+      _diasRestantes = 0;
+      _cargando = false;
+      notifyListeners();
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     _identificador = await _obtenerIdentificador(prefs);
 
