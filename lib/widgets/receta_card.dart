@@ -38,19 +38,19 @@ class RecetaCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: SizedBox(width: 84, height: 84, child: _imagen()),
+                child: SizedBox(width: 104, height: 104, child: _imagen()),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 20),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: 4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(receta.nombre,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                           maxLines: 1, overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           _dato('${receta.tiempoCoccion}min'),
@@ -88,7 +88,7 @@ class RecetaCard extends StatelessWidget {
       texto,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 11.5, color: AppColors.textoSecundario, fontWeight: FontWeight.w600),
+      style: const TextStyle(fontSize: 13, color: AppColors.textoSecundario, fontWeight: FontWeight.w600),
     );
   }
 
