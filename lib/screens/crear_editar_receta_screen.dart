@@ -8,8 +8,10 @@ import '../models/ingrediente.dart';
 import '../providers/recetas_provider.dart';
 import '../providers/almacen_provider.dart';
 import '../providers/categorias_provider.dart';
+import '../providers/licencia_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/unidades.dart';
+import 'activar_licencia_screen.dart';
 
 class CrearEditarRecetaScreen extends StatefulWidget {
   final Receta? recetaExistente;
@@ -63,7 +65,34 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
     super.dispose();
   }
 
+  bool get _funcionesBloqueadas => !context.read<LicenciaProvider>().activada;
+
+  void _mostrarBloqueado() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Función bloqueada'),
+        content: const Text(
+            'Esta función se desbloquea al activar la app. Podés hacerlo con el código de activación.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivarLicenciaScreen()));
+            },
+            child: const Text('Activar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _elegirImagen() async {
+    if (_funcionesBloqueadas) {
+      _mostrarBloqueado();
+      return;
+    }
     final picker = ImagePicker();
     final archivo = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (archivo != null) {
@@ -72,6 +101,10 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
   }
 
   void _usarUrlImagen() {
+    if (_funcionesBloqueadas) {
+      _mostrarBloqueado();
+      return;
+    }
     // Al pegar desde otras apps a veces llegan espacios o caracteres
     // invisibles (comillas curvas, saltos de línea, zero-width space) que
     // hacían fallar la validación aunque la URL fuera correcta.
@@ -112,6 +145,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
     final precioCtrl = TextEditingController();
     final cantCompraCtrl = TextEditingController(text: '1');
     final almacenProvider = context.read<AlmacenProvider>();
+    final ocultarPrecio = !context.read<LicenciaProvider>().activada;
     bool autoDelAlmacen = false;
     double? costoCalculadoPreview;
 
@@ -199,19 +233,32 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
                     Expanded(
                       child: autoDelAlmacen
                           ? InputDecorator(
-                              decoration: const InputDecoration(labelText: 'Precio'),
+                              decoration: InputDecoration(
+                                labelText: 'Precio',
+                                suffixIcon: ocultarPrecio
+                                    ? const Icon(Icons.lock_outline, size: 18, color: AppColors.textoSecundario)
+                                    : null,
+                              ),
                               child: Text(
-                                costoCalculadoPreview != null
-                                    ? '≈ \$${costoCalculadoPreview!.toStringAsFixed(2)}'
-                                    : '—',
+                                ocultarPrecio
+                                    ? '••••'
+                                    : (costoCalculadoPreview != null
+                                        ? '≈ \$${costoCalculadoPreview!.toStringAsFixed(2)}'
+                                        : '—'),
                                 style: const TextStyle(color: AppColors.acentoMenta, fontWeight: FontWeight.w600),
                               ),
                             )
                           : TextField(
                               controller: precioCtrl,
+                              obscureText: ocultarPrecio,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                              decoration: const InputDecoration(labelText: 'Precio'),
+                              decoration: InputDecoration(
+                                labelText: 'Precio',
+                                suffixIcon: ocultarPrecio
+                                    ? const Icon(Icons.lock_outline, size: 18, color: AppColors.textoSecundario)
+                                    : null,
+                              ),
                               onChanged: (_) => recalcularPreview(setModalState),
                             ),
                     ),
@@ -385,6 +432,8 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final licencia = context.watch<LicenciaProvider>();
+    final bloqueado = !licencia.activada;
     return Scaffold(
       appBar: AppBar(title: Text(_esEdicion ? 'Editar Receta' : 'Crear Receta')),
       body: ListView(
@@ -393,19 +442,32 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
           _imagenPreview(),
           const SizedBox(height: 10),
           Row(children: [
-            Expanded(child: OutlinedButton.icon(onPressed: _elegirImagen, icon: const Icon(Icons.photo_library_outlined), label: const Text('Galería'))),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _elegirImagen,
+                icon: Icon(bloqueado ? Icons.lock_outline : Icons.photo_library_outlined),
+                label: Text(bloqueado ? 'Galería 🔒' : 'Galería'),
+              ),
+            ),
           ]),
           const SizedBox(height: 8),
           Row(children: [
             Expanded(child: TextField(
               controller: _urlImagenCtrl,
+              enabled: !bloqueado,
               keyboardType: TextInputType.url,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _usarUrlImagen(),
-              decoration: const InputDecoration(labelText: 'O pegar URL de imagen'),
+              decoration: InputDecoration(
+                labelText: bloqueado ? 'O pegar URL de imagen 🔒' : 'O pegar URL de imagen',
+              ),
             )),
             const SizedBox(width: 8),
-            IconButton(onPressed: _usarUrlImagen, icon: const Icon(Icons.check_circle_outline, color: AppColors.acentoMenta)),
+            IconButton(
+              onPressed: _usarUrlImagen,
+              icon: Icon(bloqueado ? Icons.lock_outline : Icons.check_circle_outline,
+                  color: bloqueado ? AppColors.textoSecundario : AppColors.acentoMenta),
+            ),
           ]),
           const SizedBox(height: 20),
           TextField(

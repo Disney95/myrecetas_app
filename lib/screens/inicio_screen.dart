@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/recetas_provider.dart';
 import '../providers/categorias_provider.dart';
+import '../providers/licencia_provider.dart';
 import '../models/receta.dart';
 import '../theme/app_theme.dart';
 import 'detalle_receta_screen.dart';
 import 'ajustes_screen.dart';
+import 'activar_licencia_screen.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
@@ -45,6 +47,15 @@ class _InicioScreenState extends State<InicioScreen> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 children: [
+                  Consumer<LicenciaProvider>(
+                    builder: (context, licencia, _) {
+                      if (licencia.cargando || licencia.activada) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: _cartelPrueba(context, licencia),
+                      );
+                    },
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text('Categorías', style: Theme.of(context).textTheme.titleMedium),
@@ -94,6 +105,38 @@ class _InicioScreenState extends State<InicioScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _cartelPrueba(BuildContext context, LicenciaProvider licencia) {
+    final vencida = licencia.bloqueada;
+    return Material(
+      color: vencida ? AppColors.acentoTerracota.withOpacity(0.15) : AppColors.acentoMenta.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const ActivarLicenciaScreen())),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Icon(vencida ? Icons.lock_outline : Icons.timer_outlined,
+                  color: vencida ? AppColors.acentoTerracota : AppColors.acentoMenta),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  vencida
+                      ? 'Tu prueba gratuita terminó. Tocá para activar la app.'
+                      : 'Prueba gratis: te quedan ${licencia.diasRestantes} día${licencia.diasRestantes == 1 ? '' : 's'}. Tocá para activar.',
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5),
+                ),
+              ),
+              const Icon(Icons.chevron_right, size: 20, color: AppColors.textoSecundario),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

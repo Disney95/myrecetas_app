@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/licencia_provider.dart';
 import 'ajustes_categoria_screen.dart';
 import 'ajustes_tema_screen.dart';
 import 'ajustes_moneda_screen.dart';
+import 'activar_licencia_screen.dart';
 
 class AjustesScreen extends StatefulWidget {
   const AjustesScreen({super.key});
@@ -25,6 +28,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final licencia = context.watch<LicenciaProvider>();
+    final bloqueado = !licencia.activada;
     return Scaffold(
       appBar: AppBar(title: const Text('Ajustes')),
       body: ListView(
@@ -50,6 +55,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
             titulo: 'Moneda',
             subtitulo: 'EUR, USD y conversión a CUP',
             destino: const AjustesMonedaScreen(),
+            bloqueado: bloqueado,
           ),
           const SizedBox(height: 24),
           Center(
@@ -79,15 +85,45 @@ class _AjustesScreenState extends State<AjustesScreen> {
       {required IconData icon,
       required String titulo,
       required String subtitulo,
-      required Widget destino}) {
+      required Widget destino,
+      bool bloqueado = false}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         leading: Icon(icon, color: AppColors.acentoMenta),
         title: Text(titulo, style: Theme.of(context).textTheme.titleMedium),
         subtitle: Text(subtitulo, style: Theme.of(context).textTheme.bodyMedium),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textoSecundario),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => destino)),
+        trailing: bloqueado
+            ? const Icon(Icons.lock_outline, color: AppColors.textoSecundario)
+            : const Icon(Icons.chevron_right, color: AppColors.textoSecundario),
+        onTap: () {
+          if (bloqueado) {
+            _mostrarBloqueado(context);
+          } else {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => destino));
+          }
+        },
+      ),
+    );
+  }
+
+  void _mostrarBloqueado(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Función bloqueada'),
+        content: const Text(
+            'Esta función se desbloquea al activar la app. Podés hacerlo con el código de activación.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivarLicenciaScreen()));
+            },
+            child: const Text('Activar'),
+          ),
+        ],
       ),
     );
   }
