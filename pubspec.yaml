@@ -22,7 +22,7 @@ dependencies:
   package_info_plus: ^8.0.0
   install_time_plugin: ^0.0.2
   basic_utils: ^5.8.2
-  device_info_plus: ^9.1.2
+  android_id: ^0.5.1
 
 dev_dependencies:
   flutter_test:
