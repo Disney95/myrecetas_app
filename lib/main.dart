@@ -6,6 +6,7 @@ import 'providers/almacen_provider.dart';
 import 'providers/categorias_provider.dart';
 import 'providers/tema_provider.dart';
 import 'providers/moneda_provider.dart';
+import 'providers/licencia_provider.dart';
 import 'screens/main_navigation.dart';
 
 void main() {
@@ -24,6 +25,7 @@ class RecetasApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CategoriasProvider()),
         ChangeNotifierProvider(create: (_) => TemaProvider()),
         ChangeNotifierProvider(create: (_) => MonedaProvider()),
+        ChangeNotifierProvider(create: (_) => LicenciaProvider()..inicializar()),
       ],
       child: Consumer<TemaProvider>(
         builder: (context, temaProvider, _) {
