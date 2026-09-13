@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:install_time_plugin/install_time_plugin.dart';
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:android_id/android_id.dart';
 
 /// Maneja la prueba gratis de la app y su activación con un código offline
 /// atado al dispositivo (no es un código único reutilizable).
@@ -53,6 +53,8 @@ HwIDAQAB
 
   /// Identificador único de este dispositivo. Se le muestra al usuario para
   /// que lo envíe y le generen su código de activación personal.
+  /// (`androidId` = Settings.Secure.ANDROID_ID, obtenido con el paquete
+  /// android_id de Flutter Community).
   String get identificador => _identificador;
 
   /// true mientras la app está bloqueada (prueba vencida y no activada).
@@ -85,8 +87,8 @@ HwIDAQAB
 
     String id = '';
     try {
-      final info = await DeviceInfoPlugin().androidInfo;
-      id = info.androidId;
+      final valor = await const AndroidId().getId();
+      if (valor != null) id = valor;
     } catch (_) {
       // Se resuelve abajo con el respaldo.
     }
