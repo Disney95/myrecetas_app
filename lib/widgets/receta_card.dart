@@ -92,7 +92,7 @@ class RecetaCard extends StatelessWidget {
     );
   }
 
-  Widget _divisorVertical(context) {
+  Widget _divisorVertical(BuildContext context) {
     return Container(
       width: 1,
       height: 12,

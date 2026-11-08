@@ -251,8 +251,8 @@ class _InicioScreenState extends State<InicioScreen> {
     );
   }
 
-  Widget _divisorVertical(context) {
-    return Container(width: 1, height: 12, color: AppColors.divisor, margin: const EdgeInsets.symmetric(horizontal: 4));
+  Widget _divisorVertical(BuildContext context) {
+    return Container(width: 1, height: 12, color: context.colorDivisor, margin: const EdgeInsets.symmetric(horizontal: 4));
   }
 
   Widget _imagenReceta(Receta receta) {
