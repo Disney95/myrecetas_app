@@ -10,7 +10,7 @@ class DetalleRecetaScreen extends StatelessWidget {
   final Receta receta;
   const DetalleRecetaScreen({super.key, required this.receta});
 
-  Widget _imagen() {
+  Widget _imagen(Receta receta) {
     if (receta.imagenPath == null || receta.imagenPath!.isEmpty) {
       return Container(
         height: 220,
@@ -26,6 +26,11 @@ class DetalleRecetaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Usa siempre la versión actualizada de la receta (precios del almacén al día)
+    final receta = context
+        .watch<RecetasProvider>()
+        .recetas
+        .firstWhere((r) => r.id == this.receta.id, orElse: () => this.receta);
     return Scaffold(
       appBar: AppBar(
         title: Text(receta.nombre),
@@ -59,17 +64,17 @@ class DetalleRecetaScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          _imagen(),
+          _imagen(receta),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Wrap(spacing: 8, runSpacing: 8, children: [
-                  _infoChip(Icons.category_outlined, receta.categoria),
-                  _infoChip(Icons.timer_outlined, 'Prep. ${receta.tiempoPreparacion} min'),
-                  _infoChip(Icons.local_fire_department_outlined, 'Cocción ${receta.tiempoCoccion} min'),
-                  _infoChip(Icons.restaurant_outlined, '${receta.porciones.toStringAsFixed(0)} porciones'),
+                  _infoChip(context, Icons.category_outlined, receta.categoria),
+                  _infoChip(context, Icons.thermostat, 'Temp. ${receta.temperatura} °C'),
+                  _infoChip(context, Icons.local_fire_department_outlined, 'Cocción ${receta.tiempoCoccion} min'),
+                  _infoChip(context, Icons.restaurant_outlined, '${receta.porciones.toStringAsFixed(0)} porciones'),
                 ]),
                 const SizedBox(height: 24),
 
@@ -133,14 +138,14 @@ class DetalleRecetaScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoChip(IconData icon, String texto) {
+  Widget _infoChip(BuildContext context, IconData icon, String texto) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: AppColors.tarjeta, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divisor)),
+      decoration: BoxDecoration(color: context.colorTarjeta, borderRadius: BorderRadius.circular(10), border: Border.all(color: context.colorDivisor)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 15, color: AppColors.textoSecundario),
+        Icon(icon, size: 15, color: context.colorSecundario),
         const SizedBox(width: 6),
-        Text(texto, style: const TextStyle(fontSize: 12, color: AppColors.textoSecundario)),
+        Text(texto, style: TextStyle(fontSize: 12, color: context.colorSecundario)),
       ]),
     );
   }
@@ -151,7 +156,7 @@ class DetalleRecetaScreen extends StatelessWidget {
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(label, style: Theme.of(context).textTheme.bodyMedium),
         Text('\$${valor.toStringAsFixed(2)}',
-            style: TextStyle(fontWeight: FontWeight.bold, color: destacado ? AppColors.exito : AppColors.textoPrincipal, fontSize: destacado ? 18 : 14)),
+            style: TextStyle(fontWeight: FontWeight.bold, color: destacado ? AppColors.exito : context.colorPrincipal, fontSize: destacado ? 18 : 14)),
       ]),
     );
   }

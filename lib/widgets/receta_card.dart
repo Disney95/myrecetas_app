@@ -53,20 +53,20 @@ class RecetaCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          _dato('${receta.tiempoCoccion}min'),
-                          _divisorVertical(),
-                          _dato('${receta.tiempoPreparacion}min'),
-                          _divisorVertical(),
-                          _dato(receta.porciones.toStringAsFixed(0)),
-                          _divisorVertical(),
-                          _dato('${receta.precioVentaSugerido.toStringAsFixed(0)}cup'),
+                          _dato(context, '${receta.tiempoCoccion}min'),
+                          _divisorVertical(context),
+                          _dato(context, '${receta.temperatura}°C'),
+                          _divisorVertical(context),
+                          _dato(context, receta.porciones.toStringAsFixed(0)),
+                          _divisorVertical(context),
+                          _dato(context, '${receta.precioVentaSugerido.toStringAsFixed(0)}cup'),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           _chip('Costo/porción \$${receta.costoPorPorcion.toStringAsFixed(2)}',
-                              AppColors.textoPrincipal),
+                              context.colorPrincipal),
                           const SizedBox(width: 6),
                           _chip('Margen ${receta.margenGanancia.toStringAsFixed(0)}%',
                               AppColors.exito),
@@ -83,20 +83,20 @@ class RecetaCard extends StatelessWidget {
     );
   }
 
-  Widget _dato(String texto) {
+  Widget _dato(BuildContext context, String texto) {
     return Text(
       texto,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 13, color: AppColors.textoSecundario, fontWeight: FontWeight.w600),
+      style: TextStyle(fontSize: 13, color: context.colorSecundario, fontWeight: FontWeight.w600),
     );
   }
 
-  Widget _divisorVertical() {
+  Widget _divisorVertical(context) {
     return Container(
       width: 1,
       height: 12,
-      color: AppColors.divisor,
+      color: context.colorDivisor,
       margin: const EdgeInsets.symmetric(horizontal: 8),
     );
   }

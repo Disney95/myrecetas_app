@@ -20,8 +20,16 @@ class RecetasApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => RecetasProvider()),
         ChangeNotifierProvider(create: (_) => AlmacenProvider()),
+        // Las recetas se recalculan solas cuando cambian los precios del almacén
+        ChangeNotifierProxyProvider<AlmacenProvider, RecetasProvider>(
+          create: (_) => RecetasProvider(),
+          update: (_, almacen, recetas) {
+            final r = recetas ?? RecetasProvider();
+            r.sincronizarConAlmacen(almacen.insumos);
+            return r;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => CategoriasProvider()),
         ChangeNotifierProvider(create: (_) => TemaProvider()),
         ChangeNotifierProvider(create: (_) => MonedaProvider()),

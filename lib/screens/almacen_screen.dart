@@ -150,7 +150,7 @@ class AlmacenScreen extends StatelessWidget {
                   if (moneda != Moneda.cup && costoIngresado > 0) ...[
                     const SizedBox(height: 6),
                     Text('≈ \$${costoTotalCup.toStringAsFixed(0)} CUP en total (según la tasa configurada en Ajustes → Moneda)',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textoSecundario)),
+                        style: TextStyle(fontSize: 12, color: context.colorSecundario)),
                   ],
                   if (cant > 0 && costoTotalCup > 0) ...[
                     const SizedBox(height: 10),

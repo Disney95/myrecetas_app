@@ -1,3 +1,6 @@
+import '../utils/unidades.dart';
+import 'insumo.dart';
+
 class Ingrediente {
   String id;
   String nombre;
@@ -19,6 +22,23 @@ class Ingrediente {
   double get costoCalculado {
     if (cantidadCompra <= 0) return 0;
     return (precioCompra / cantidadCompra) * cantidad;
+  }
+
+  /// Actualiza el precio de referencia con el del almacén (sube o baja).
+  /// Devuelve true si el costo cambió. Solo aplica si las unidades son
+  /// compatibles (peso/volumen/conteo).
+  bool actualizarDesdeInsumo(Insumo insumo) {
+    if (!UnidadesUtil.sonCompatibles(insumo.unidad, unidad)) return false;
+    final baseInsumo = UnidadesUtil.aBase(insumo.unidad, insumo.cantidadComprada);
+    final baseUnidadReceta = UnidadesUtil.aBase(unidad, 1);
+    if (baseInsumo <= 0 || baseUnidadReceta <= 0) return false;
+    final nuevaCantidadCompra = baseInsumo / baseUnidadReceta;
+    final nuevoPrecio = insumo.costoTotal;
+    final cambio = (nuevoPrecio - precioCompra).abs() > 0.000001 ||
+        (nuevaCantidadCompra - cantidadCompra).abs() > 0.000001;
+    precioCompra = nuevoPrecio;
+    cantidadCompra = nuevaCantidadCompra;
+    return cambio;
   }
 
   Map<String, dynamic> toMap() => {

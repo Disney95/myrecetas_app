@@ -12,7 +12,7 @@ class AppColors {
   static const Color fondoOscuro = Color(0xFF000000);
   static const Color tarjetaOscura = Color(0xFF1C1C1E);
   static const Color textoPrincipalOscuro = Color(0xFFF2F2F2);
-  static const Color textoSecundarioOscuro = Color(0xFFA0A0A0);
+  static const Color textoSecundarioOscuro = Color(0xFFDADADA);
   static const Color divisorOscuro = Color(0xFF2C2C2E);
 
   // Acentos (iguales en ambos temas)
@@ -20,6 +20,17 @@ class AppColors {
   static const Color acentoTerracota = Color(0xFFD98E73);
   static const Color acentoCrema = Color(0xFFEFE3D0);
   static const Color exito = Color(0xFF4CAF82);
+}
+
+/// Colores que cambian solos según el tema (claro/oscuro).
+extension AppColorsContext on BuildContext {
+  bool get _esOscuro => Theme.of(this).brightness == Brightness.dark;
+  Color get colorSecundario =>
+      _esOscuro ? AppColors.textoSecundarioOscuro : AppColors.textoSecundario;
+  Color get colorPrincipal =>
+      _esOscuro ? AppColors.textoPrincipalOscuro : AppColors.textoPrincipal;
+  Color get colorDivisor => _esOscuro ? AppColors.divisorOscuro : AppColors.divisor;
+  Color get colorTarjeta => _esOscuro ? AppColors.tarjetaOscura : AppColors.tarjeta;
 }
 
 class AppTheme {

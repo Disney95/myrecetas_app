@@ -70,7 +70,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
                   _info == null
                       ? 'Versión...'
                       : 'Versión ${_info!.version} (build ${_info!.buildNumber})',
-                  style: const TextStyle(color: AppColors.textoSecundario, fontSize: 12),
+                  style: TextStyle(color: context.colorSecundario, fontSize: 12),
                 ),
               ],
             ),

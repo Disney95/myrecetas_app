@@ -24,7 +24,7 @@ class CrearEditarRecetaScreen extends StatefulWidget {
 class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
   final _nombreCtrl = TextEditingController();
   final _porcionesCtrl = TextEditingController(text: '1');
-  final _prepCtrl = TextEditingController(text: '0');
+  final _tempCtrl = TextEditingController(text: '0');
   final _coccionCtrl = TextEditingController(text: '0');
   final _urlImagenCtrl = TextEditingController();
 
@@ -44,7 +44,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
     if (r != null) {
       _nombreCtrl.text = r.nombre;
       _porcionesCtrl.text = r.porciones.toString();
-      _prepCtrl.text = r.tiempoPreparacion.toString();
+      _tempCtrl.text = r.temperatura.toString();
       _coccionCtrl.text = r.tiempoCoccion.toString();
       _categoria = r.categoria;
       _imagenPath = r.imagenPath;
@@ -59,7 +59,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
   void dispose() {
     _nombreCtrl.dispose();
     _porcionesCtrl.dispose();
-    _prepCtrl.dispose();
+    _tempCtrl.dispose();
     _coccionCtrl.dispose();
     _urlImagenCtrl.dispose();
     super.dispose();
@@ -344,7 +344,8 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
       nombre: nombre,
       categoria: _categoria,
       imagenPath: _imagenPath,
-      tiempoPreparacion: int.tryParse(_prepCtrl.text) ?? 0,
+      tiempoPreparacion: widget.recetaExistente?.tiempoPreparacion ?? 0,
+      temperatura: int.tryParse(_tempCtrl.text) ?? 0,
       tiempoCoccion: int.tryParse(_coccionCtrl.text) ?? 0,
       porciones: _porciones,
       ingredientes: _ingredientes,
@@ -366,7 +367,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
     setState(() {
       _nombreCtrl.clear();
       _porcionesCtrl.text = '1';
-      _prepCtrl.text = '0';
+      _tempCtrl.text = '0';
       _coccionCtrl.text = '0';
       _imagenPath = null;
       _indirectos = 15;
@@ -401,24 +402,24 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
             },
             errorBuilder: (context, error, stackTrace) => Container(
               height: 160,
-              decoration: BoxDecoration(color: AppColors.tarjeta, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divisor)),
-              child: const Padding(
+              decoration: BoxDecoration(color: context.colorTarjeta, borderRadius: BorderRadius.circular(16), border: Border.all(color: context.colorDivisor)),
+              child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.broken_image_outlined, size: 32, color: AppColors.textoSecundario),
+                      Icon(Icons.broken_image_outlined, size: 32, color: context.colorSecundario),
                       SizedBox(height: 6),
                       Text('No se pudo cargar la imagen de esa URL',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textoSecundario, fontSize: 12, fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: context.colorSecundario, fontSize: 12, fontWeight: FontWeight.w600)),
                       SizedBox(height: 4),
                       Text(
                         'Ese enlace no apunta directo a un archivo de imagen (por ejemplo, un enlace de Pinterest a una publicación no funciona). '
                         'Mantén presionada la imagen en el navegador y elige "Copiar dirección de imagen" para obtener el enlace correcto.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textoSecundario, fontSize: 11),
+                        style: TextStyle(color: context.colorSecundario, fontSize: 11),
                       ),
                     ],
                   ),
@@ -434,6 +435,12 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
   Widget build(BuildContext context) {
     final licencia = context.watch<LicenciaProvider>();
     final bloqueado = !licencia.activada;
+    // Mantiene los costos de los ingredientes al día con los precios del almacén
+    final almacenActual = context.watch<AlmacenProvider>();
+    for (final ing in _ingredientes) {
+      final insumo = almacenActual.buscarPorNombre(ing.nombre, ing.unidad);
+      if (insumo != null) ing.actualizarDesdeInsumo(insumo);
+    }
     return Scaffold(
       appBar: AppBar(title: Text(_esEdicion ? 'Editar Receta' : 'Crear Receta')),
       body: ListView(
@@ -496,7 +503,7 @@ class _CrearEditarRecetaScreenState extends State<CrearEditarRecetaScreen> {
           ),
           const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: TextField(controller: _prepCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Prep. (min)'))),
+            Expanded(child: TextField(controller: _tempCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Temp. (°C)'))),
             const SizedBox(width: 10),
             Expanded(child: TextField(controller: _coccionCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Cocción (min)'))),
             const SizedBox(width: 10),

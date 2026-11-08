@@ -23,9 +23,9 @@ class FinanzasScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 Row(children: [
-                  Expanded(child: _tarjetaResumen('Inversión estimada', inversion, AppColors.textoPrincipal)),
+                  Expanded(child: _tarjetaResumen(context, 'Inversión estimada', inversion, context.colorPrincipal)),
                   const SizedBox(width: 12),
-                  Expanded(child: _tarjetaResumen('Ganancia estimada', ganancia, AppColors.exito)),
+                  Expanded(child: _tarjetaResumen(context, 'Ganancia estimada', ganancia, AppColors.exito)),
                 ]),
                 const SizedBox(height: 20),
                 Text('Inversión vs. Ganancia', style: Theme.of(context).textTheme.titleMedium),
@@ -59,9 +59,9 @@ class FinanzasScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  _leyenda('Inversión', AppColors.acentoTerracota),
+                  _leyenda(context, 'Inversión', AppColors.acentoTerracota),
                   const SizedBox(width: 20),
-                  _leyenda('Ganancia', AppColors.acentoMenta),
+                  _leyenda(context, 'Ganancia', AppColors.acentoMenta),
                 ]),
                 const SizedBox(height: 24),
                 Text('Rentabilidad por receta', style: Theme.of(context).textTheme.titleMedium),
@@ -80,14 +80,14 @@ class FinanzasScreen extends StatelessWidget {
     );
   }
 
-  Widget _tarjetaResumen(String label, double valor, Color color) {
+  Widget _tarjetaResumen(BuildContext context, String label, double valor, Color color) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(color: AppColors.textoSecundario, fontSize: 13)),
+            Text(label, style: TextStyle(color: context.colorSecundario, fontSize: 13)),
             const SizedBox(height: 6),
             Text('\$${valor.toStringAsFixed(2)}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
           ],
@@ -96,11 +96,11 @@ class FinanzasScreen extends StatelessWidget {
     );
   }
 
-  Widget _leyenda(String texto, Color color) {
+  Widget _leyenda(BuildContext context, String texto, Color color) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
       const SizedBox(width: 6),
-      Text(texto, style: const TextStyle(fontSize: 12, color: AppColors.textoSecundario)),
+      Text(texto, style: TextStyle(fontSize: 12, color: context.colorSecundario)),
     ]);
   }
 }

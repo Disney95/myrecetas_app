@@ -21,7 +21,7 @@ class DBHelper {
     final path = join(await getDatabasesPath(), 'recetas_app.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await _crearTablasV1(db);
         await _crearTablasV2(db);
@@ -34,6 +34,9 @@ class DBHelper {
         }
         if (oldVersion < 3) {
           await _migrarV3(db);
+        }
+        if (oldVersion < 4) {
+          await _migrarV4(db);
         }
         await _sembrarCategoriasPorDefecto(db);
       },
@@ -48,6 +51,7 @@ class DBHelper {
         categoria TEXT,
         imagenPath TEXT,
         tiempoPreparacion INTEGER,
+        temperatura INTEGER DEFAULT 0,
         tiempoCoccion INTEGER,
         porciones REAL,
         ingredientes TEXT,
@@ -91,6 +95,14 @@ class DBHelper {
         'ALTER TABLE insumos ADD COLUMN costoOriginal REAL');
     await db.execute(
         'UPDATE insumos SET costoOriginal = costoTotal WHERE costoOriginal IS NULL');
+  }
+
+  /// v4: las recetas guardan la temperatura (°C) en lugar de mostrar el tiempo de preparación.
+  Future<void> _migrarV4(Database db) async {
+    final columnas = await db.rawQuery('PRAGMA table_info(recetas)');
+    if (!columnas.any((c) => c['name'] == 'temperatura')) {
+      await db.execute('ALTER TABLE recetas ADD COLUMN temperatura INTEGER DEFAULT 0');
+    }
   }
 
   Future<void> _migrarV3(Database db) async {

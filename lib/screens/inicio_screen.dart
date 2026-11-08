@@ -223,11 +223,11 @@ class _InicioScreenState extends State<InicioScreen> {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Expanded(child: _datoChico('${receta.tiempoCoccion}min')),
-                          _divisorVertical(),
-                          Expanded(child: _datoChico('${receta.precioVentaSugerido.toStringAsFixed(0)}cup')),
-                          _divisorVertical(),
-                          Expanded(child: _datoChico('${receta.porciones.toStringAsFixed(0)} und')),
+                          Expanded(child: _datoChico(context, '${receta.temperatura}°C')),
+                          _divisorVertical(context),
+                          Expanded(child: _datoChico(context, '${receta.precioVentaSugerido.toStringAsFixed(0)}cup')),
+                          _divisorVertical(context),
+                          Expanded(child: _datoChico(context, '${receta.porciones.toStringAsFixed(0)} und')),
                         ],
                       ),
                     ],
@@ -241,17 +241,17 @@ class _InicioScreenState extends State<InicioScreen> {
     );
   }
 
-  Widget _datoChico(String texto) {
+  Widget _datoChico(BuildContext context, String texto) {
     return Text(
       texto,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: 10.5, color: AppColors.textoSecundario, fontWeight: FontWeight.w600),
+      style: TextStyle(fontSize: 10.5, color: context.colorSecundario, fontWeight: FontWeight.w600),
     );
   }
 
-  Widget _divisorVertical() {
+  Widget _divisorVertical(context) {
     return Container(width: 1, height: 12, color: AppColors.divisor, margin: const EdgeInsets.symmetric(horizontal: 4));
   }
 

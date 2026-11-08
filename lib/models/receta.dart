@@ -14,7 +14,8 @@ class Receta {
   String nombre;
   String categoria;
   String? imagenPath; // ruta local o URL
-  int tiempoPreparacion; // minutos
+  int tiempoPreparacion; // minutos (campo antiguo, ya no se muestra)
+  int temperatura; // grados Celsius
   int tiempoCoccion; // minutos
   double porciones;
   List<Ingrediente> ingredientes;
@@ -29,6 +30,7 @@ class Receta {
     required this.categoria,
     this.imagenPath,
     this.tiempoPreparacion = 0,
+    this.temperatura = 0,
     this.tiempoCoccion = 0,
     this.porciones = 1,
     List<Ingrediente>? ingredientes,
@@ -64,6 +66,7 @@ class Receta {
         'categoria': categoria,
         'imagenPath': imagenPath,
         'tiempoPreparacion': tiempoPreparacion,
+        'temperatura': temperatura,
         'tiempoCoccion': tiempoCoccion,
         'porciones': porciones,
         'ingredientes': jsonEncode(ingredientes.map((e) => e.toMap()).toList()),
@@ -79,6 +82,7 @@ class Receta {
         categoria: map['categoria'] ?? categoriasPorDefecto.first,
         imagenPath: map['imagenPath'],
         tiempoPreparacion: map['tiempoPreparacion'] ?? 0,
+        temperatura: map['temperatura'] ?? 0,
         tiempoCoccion: map['tiempoCoccion'] ?? 0,
         porciones: (map['porciones'] as num).toDouble(),
         ingredientes: (jsonDecode(map['ingredientes']) as List)
